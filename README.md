@@ -3,13 +3,13 @@
 [![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge\&logo=windows\&logoColor=white)](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on)
 [![Public workflows that use this action.](https://img.shields.io/endpoint?style=for-the-badge\&url=https%3A%2F%2Fused-by.vercel.app%2Fapi%2Fgithub-actions%2Fused-by%3Faction%3Dtj-actions%2Fchanged-files%26badge%3Dtrue)](https://github.com/search?o=desc\&q=tj-actions+changed-files+language%3AYAML\&s=\&type=Code)
 
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/4a625e9b62794b5b98e169c15c0e673c)](https://www.codacy.com/gh/tj-actions/changed-files/dashboard?utm_source=github.com\&utm_medium=referral\&utm_content=tj-actions/changed-files\&utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/4a625e9b62794b5b98e169c15c0e673c)](https://app.codacy.com/gh/tj-actions/changed-files/dashboard?utm_source=gh\&utm_medium=referral\&utm_content=\&utm_campaign=Badge_grade)
 [![CI](https://github.com/tj-actions/changed-files/actions/workflows/test.yml/badge.svg)](https://github.com/tj-actions/changed-files/actions/workflows/test.yml)
 [![Update release version.](https://github.com/tj-actions/changed-files/actions/workflows/sync-release-version.yml/badge.svg)](https://github.com/tj-actions/changed-files/actions/workflows/sync-release-version.yml)
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 
-[![All Contributors](https://img.shields.io/badge/all_contributors-21-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-22-orange.svg?style=flat-square)](#contributors-)
 
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
@@ -19,7 +19,7 @@ Effortlessly track all changed files and directories relative to a target branch
 
 > \[!NOTE]
 >
-> *   This action solely identifies files that have undergone changes within the context of events such as `pull_request*`, `push`, and more. However, it doesn't detect pending uncommitted changes created during the workflow execution.
+> *   This action solely identifies files that have changed within the context of events such as `pull_request*`, `push`, and more. However, it doesn't detect pending uncommitted changes created during the workflow execution.
 >
 >     See: https://github.com/tj-actions/verify-changed-files instead
 
@@ -34,7 +34,7 @@ Effortlessly track all changed files and directories relative to a target branch
     *   [Other supported events :electron:](#other-supported-events-electron)
 *   [Inputs ⚙️](#inputs-️)
 *   [Useful Acronyms 🧮](#useful-acronyms-)
-*   [Outputs](#outputs)
+*   [Outputs 📤](#outputs-)
 *   [Versioning 🏷️](#versioning-️)
 *   [Examples 📄](#examples-)
 *   [Real-world usage 🌐](#real-world-usage-)
@@ -51,7 +51,7 @@ Effortlessly track all changed files and directories relative to a target branch
 *   Fast execution, averaging 0-10 seconds.
 *   Leverages either [Github's REST API](https://docs.github.com/en/rest/reference/repos#list-commits) or [Git's native diff](https://git-scm.com/docs/git-diff) to determine changed files.
 *   Facilitates easy debugging.
-*   Scales to handle large repositories.
+*   Scales to handle large/mono repositories.
 *   Supports Git submodules.
 *   Supports [merge queues](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue) for pull requests.
 *   Generates escaped [JSON output for running matrix jobs](https://github.com/tj-actions/changed-files/blob/main/.github/workflows/matrix-test.yml) based on changed files.
@@ -60,7 +60,7 @@ Effortlessly track all changed files and directories relative to a target branch
     *   Optionally excludes the current directory.
 *   Writes outputs to a designated `.txt` or `.json` file for further processing.
 *   Restores deleted files to their previous location or a newly specified location.
-*   Supports Monorepos by fetching a fixed number of commits.
+*   Supports fetching a fixed number of commits which improves performance.
 *   Compatible with all platforms (Linux, MacOS, Windows).
 *   Supports [GitHub-hosted runners](https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners).
 *   Supports [GitHub Enterprise Server](https://docs.github.com/en/enterprise-server@3.3/admin/github-actions/getting-started-with-github-actions-for-your-enterprise/getting-started-with-github-actions-for-github-enterprise-server).
@@ -122,43 +122,46 @@ jobs:
       # Example 1
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
-        
+        uses: tj-actions/changed-files@v41
         # To compare changes between the current commit and the last pushed remote commit set `since_last_remote_commit: true`. e.g
         # with:
         #   since_last_remote_commit: true 
 
       - name: List all changed files
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          for file in "$ALL_CHANGED_FILES"; do
             echo "$file was changed"
           done
 
       # Example 2
       - name: Get all changed markdown files
         id: changed-markdown-files
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v41
         with:
+          # Avoid using single or double quotes for multiline patterns
           files: |
              **.md
-        # Avoid using single or double quotes for multiline patterns
 
       - name: List all changed files markdown files
+        if: steps.changed-markdown-files.outputs.any_changed == 'true'
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-markdown-files.outputs.all_changed_files }}
         run: |
-          for file in ${{ steps.changed-markdown-files.outputs.all_changed_files }}; do
+          for file in "$ALL_CHANGED_FILES"; do
             echo "$file was changed"
           done
 
       # Example 3
       - name: Get all test, doc and src files that have changed
         id: changed-files-yaml
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v41
         with:
           files_yaml: |
             doc:
               - '**.md'
               - docs/**
-              - README.md
             test:
               - test/**
               - '!test/**.md'
@@ -169,29 +172,35 @@ jobs:
       - name: Run step if test file(s) change
         # NOTE: Ensure all outputs are prefixed by the same key used above e.g. `test_(...)` | `doc_(...)` | `src_(...)` when trying to access the `any_changed` output.
         if: steps.changed-files-yaml.outputs.test_any_changed == 'true'  
+        env:
+          TEST_ALL_CHANGED_FILES: ${{ steps.changed-files-yaml.outputs.test_all_changed_files }}
         run: |
           echo "One or more test file(s) has changed."
-          echo "List all the files that have changed: ${{ steps.changed-files-yaml.outputs.test_all_changed_files }}"
+          echo "List all the files that have changed: $TEST_ALL_CHANGED_FILES"
       
       - name: Run step if doc file(s) change
         if: steps.changed-files-yaml.outputs.doc_any_changed == 'true'
+        env:
+          DOC_ALL_CHANGED_FILES: ${{ steps.changed-files-yaml.outputs.doc_all_changed_files }}
         run: |
           echo "One or more doc file(s) has changed."
-          echo "List all the files that have changed: ${{ steps.changed-files-yaml.outputs.doc_all_changed_files }}"
+          echo "List all the files that have changed: $DOC_ALL_CHANGED_FILES"
 
       # Example 3
       - name: Get changed files in the docs folder
         id: changed-files-specific
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v41
         with:
           files: docs/*.{js,html}  # Alternatively using: `docs/**`
           files_ignore: docs/static.js
 
       - name: Run step if any file(s) in the docs folder change
         if: steps.changed-files-specific.outputs.any_changed == 'true'
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files-specific.outputs.all_changed_files }}
         run: |
           echo "One or more files in the docs folder has changed."
-          echo "List all the files that have changed: ${{ steps.changed-files-specific.outputs.all_changed_files }}"
+          echo "List all the files that have changed: $ALL_CHANGED_FILES"
 ```
 
 #### Using Github's API :octocat:
@@ -222,11 +231,13 @@ jobs:
     steps:
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v41
 
       - name: List all changed files
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          for file in "$ALL_CHANGED_FILES"; do
             echo "$file was changed"
           done
 ```
@@ -263,13 +274,14 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
-
+        uses: tj-actions/changed-files@v41
       # NOTE: `since_last_remote_commit: true` is implied by default and falls back to the previous local commit.
 
       - name: List all changed files
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          for file in "$ALL_CHANGED_FILES"; do
             echo "$file was changed"
           done
       ...
@@ -296,19 +308,18 @@ Support this project with a :star:
 
 [buymeacoffee-shield]: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
 
-> \[!WARNING]
+> \[!IMPORTANT]
 >
-> *   When using `files_yaml*` inputs ensure all outputs are prefixed by the key `test_{...}` e.g. `test_added_files`, `test_any_changed`
-> *   All keys must start with a letter or \_ and contain only alphanumeric characters, -, or \_.
-
-<!-- AUTO-DOC-OUTPUT:END -->
+> *   When using `files_yaml*` inputs:
+>     *   All keys must start with a letter or `_` and contain only alphanumeric characters, `-`, or `_`.
+>         For example, `test` or `test_key` or `tesT-key` are all valid.
 
 ## Inputs ⚙️
 
 <!-- AUTO-DOC-INPUT:START - Do not remove or modify this section -->
 
 ```yaml
-- uses: tj-actions/changed-files@v40
+- uses: tj-actions/changed-files@v41
   id: changed-files
   with:
     # Github API URL.
@@ -542,6 +553,12 @@ Support this project with a :star:
     # Default: "\n"
     recover_files_separator: ''
 
+    # Apply sanitization to output filenames before being set as 
+    # output. 
+    # Type: boolean
+    # Default: "true"
+    safe_output: ''
+
     # Split character for output strings.
     # Type: string
     # Default: " "
@@ -609,7 +626,14 @@ Support this project with a :star:
 |     U     |   Unmerged   |
 |     X     |   Unknown    |
 
-## Outputs
+> \[!IMPORTANT]
+>
+> *   When using `files_yaml*` inputs:
+>     *   it's required to prefix all outputs with the key to ensure that the correct outputs are accessible.
+>
+>         For example, if you use `test` as the key, you can access outputs like `added_files`, `any_changed`, and so on by prefixing them with the key `test_added_files` or `test_any_changed` etc.
+
+## Outputs 📤
 
 <!-- AUTO-DOC-OUTPUT:START - Do not remove or modify this section -->
 
@@ -654,50 +678,7 @@ Support this project with a :star:
 |                                  <a name="output_unmerged_files"></a>[unmerged\_files](#output_unmerged_files)                                  | string |                                                                                                                                     Returns only files that are <br>Unmerged (U).                                                                                                                                       |
 |                         <a name="output_unmerged_files_count"></a>[unmerged\_files\_count](#output_unmerged_files_count)                         | string |                                                                                                                                         Returns the number of `unmerged_files`                                                                                                                                          |
 
-<!-- AUTO-DOC-OUTPUT:END --> 📤
-
-<!-- AUTO-DOC-OUTPUT:START - Do not remove or modify this section -->
-
-|                                                                     OUTPUT                                                                     |  TYPE  |                                                                                                                                                       DESCRIPTION                                                                                                                                                       |
-|------------------------------------------------------------------------------------------------------------------------------------------------|--------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|                                      <a name="output_added_files"></a>[added\_files](#output_added_files)                                       | string |                                                                                                                                       Returns only files that are <br>Added (A).                                                                                                                                        |
-|                             <a name="output_added_files_count"></a>[added\_files\_count](#output_added_files_count)                              | string |                                                                                                                                           Returns the number of `added_files`                                                                                                                                           |
-|          <a name="output_all_changed_and_modified_files"></a>[all\_changed\_and\_modified\_files](#output_all_changed_and_modified_files)          | string |                                                                                                                     Returns all changed and modified <br>files i.e. *a combination of (ACMRDTUX)*                                                                                                                       |
-| <a name="output_all_changed_and_modified_files_count"></a>[all\_changed\_and\_modified\_files\_count](#output_all_changed_and_modified_files_count) | string |                                                                                                                                 Returns the number of `all_changed_and_modified_files`                                                                                                                                  |
-|                             <a name="output_all_changed_files"></a>[all\_changed\_files](#output_all_changed_files)                              | string |                                                                                                       Returns all changed files i.e. <br>*a combination of all added, copied, modified and renamed files (ACMR)*                                                                                                        |
-|                    <a name="output_all_changed_files_count"></a>[all\_changed\_files\_count](#output_all_changed_files_count)                     | string |                                                                                                                                        Returns the number of `all_changed_files`                                                                                                                                        |
-|                            <a name="output_all_modified_files"></a>[all\_modified\_files](#output_all_modified_files)                            | string |                                                                                                 Returns all changed files i.e. <br>*a combination of all added, copied, modified, renamed and deleted files (ACMRD)*.                                                                                                   |
-|                   <a name="output_all_modified_files_count"></a>[all\_modified\_files\_count](#output_all_modified_files_count)                   | string |                                                                                                                                       Returns the number of `all_modified_files`                                                                                                                                        |
-|                 <a name="output_all_old_new_renamed_files"></a>[all\_old\_new\_renamed\_files](#output_all_old_new_renamed_files)                  | string | Returns only files that are <br>Renamed and lists their old <br>and new names. **NOTE:** This <br>requires setting `include_all_old_new_renamed_files` to `true`. <br>Also, keep in mind that <br>this output is global and <br>wouldn't be nested in outputs <br>generated when the `*_yaml_*` input <br>is used. (R)  |
-|        <a name="output_all_old_new_renamed_files_count"></a>[all\_old\_new\_renamed\_files\_count](#output_all_old_new_renamed_files_count)         | string |                                                                                                                                    Returns the number of `all_old_new_renamed_files`                                                                                                                                    |
-|                                      <a name="output_any_changed"></a>[any\_changed](#output_any_changed)                                       | string |                                                     Returns `true` when any of <br>the filenames provided using the <br>`files*` or `files_ignore*` inputs has changed. i.e. <br>*includes a combination of all added, copied, modified and renamed files (ACMR)*.                                                      |
-|                                      <a name="output_any_deleted"></a>[any\_deleted](#output_any_deleted)                                       | string |                                                                                            Returns `true` when any of <br>the filenames provided using the <br>`files*` or `files_ignore*` inputs has been deleted. <br>(D)                                                                                             |
-|                                     <a name="output_any_modified"></a>[any\_modified](#output_any_modified)                                     | string |                                            Returns `true` when any of <br>the filenames provided using the <br>`files*` or `files_ignore*` inputs has been modified. <br>i.e. *includes a combination of all added, copied, modified, renamed, and deleted files (ACMRD)*.                                              |
-|                                     <a name="output_changed_keys"></a>[changed\_keys](#output_changed_keys)                                     | string |                                                                     Returns all changed YAML keys <br>when the `files_yaml` input is <br>used. i.e. *key that contains any path that has either been added, copied, modified, and renamed (ACMR)*                                                                       |
-|                                     <a name="output_copied_files"></a>[copied\_files](#output_copied_files)                                     | string |                                                                                                                                      Returns only files that are <br>Copied (C).                                                                                                                                        |
-|                            <a name="output_copied_files_count"></a>[copied\_files\_count](#output_copied_files_count)                            | string |                                                                                                                                          Returns the number of `copied_files`                                                                                                                                           |
-|                                   <a name="output_deleted_files"></a>[deleted\_files](#output_deleted_files)                                    | string |                                                                                                                                      Returns only files that are <br>Deleted (D).                                                                                                                                       |
-|                          <a name="output_deleted_files_count"></a>[deleted\_files\_count](#output_deleted_files_count)                           | string |                                                                                                                                          Returns the number of `deleted_files`                                                                                                                                          |
-|                                  <a name="output_modified_files"></a>[modified\_files](#output_modified_files)                                  | string |                                                                                                                                     Returns only files that are <br>Modified (M).                                                                                                                                       |
-|                         <a name="output_modified_files_count"></a>[modified\_files\_count](#output_modified_files_count)                         | string |                                                                                                                                         Returns the number of `modified_files`                                                                                                                                          |
-|                                   <a name="output_modified_keys"></a>[modified\_keys](#output_modified_keys)                                    | string |                                                                    Returns all modified YAML keys <br>when the `files_yaml` input is <br>used. i.e. *key that contains any path that has either been added, copied, modified, and deleted (ACMRD)*                                                                      |
-|                                     <a name="output_only_changed"></a>[only\_changed](#output_only_changed)                                     | string |                                                            Returns `true` when only files <br>provided using the `files*` or `files_ignore*` inputs <br>has changed. i.e. *includes a combination of all added, copied, modified and renamed files (ACMR)*.                                                             |
-|                                     <a name="output_only_deleted"></a>[only\_deleted](#output_only_deleted)                                     | string |                                                                                                   Returns `true` when only files <br>provided using the `files*` or `files_ignore*` inputs <br>has been deleted. (D)                                                                                                    |
-|                                   <a name="output_only_modified"></a>[only\_modified](#output_only_modified)                                    | string |                                                                                                Returns `true` when only files <br>provided using the `files*` or `files_ignore*` inputs <br>has been modified. (ACMRD).                                                                                                 |
-|                          <a name="output_other_changed_files"></a>[other\_changed\_files](#output_other_changed_files)                           | string |                                                                              Returns all other changed files <br>not listed in the files <br>input i.e. *includes a combination of all added, copied, modified and renamed files (ACMR)*.                                                                               |
-|                 <a name="output_other_changed_files_count"></a>[other\_changed\_files\_count](#output_other_changed_files_count)                  | string |                                                                                                                                       Returns the number of `other_changed_files`                                                                                                                                       |
-|                          <a name="output_other_deleted_files"></a>[other\_deleted\_files](#output_other_deleted_files)                           | string |                                                                                                  Returns all other deleted files <br>not listed in the files <br>input i.e. *a  combination of all deleted files (D)*                                                                                                   |
-|                 <a name="output_other_deleted_files_count"></a>[other\_deleted\_files\_count](#output_other_deleted_files_count)                  | string |                                                                                                                                       Returns the number of `other_deleted_files`                                                                                                                                       |
-|                         <a name="output_other_modified_files"></a>[other\_modified\_files](#output_other_modified_files)                         | string |                                                                                 Returns all other modified files <br>not listed in the files <br>input i.e. *a combination of all added, copied, modified, and deleted files (ACMRD)*                                                                                   |
-|                <a name="output_other_modified_files_count"></a>[other\_modified\_files\_count](#output_other_modified_files_count)                | string |                                                                                                                                      Returns the number of `other_modified_files`                                                                                                                                       |
-|                                   <a name="output_renamed_files"></a>[renamed\_files](#output_renamed_files)                                    | string |                                                                                                                                      Returns only files that are <br>Renamed (R).                                                                                                                                       |
-|                          <a name="output_renamed_files_count"></a>[renamed\_files\_count](#output_renamed_files_count)                           | string |                                                                                                                                          Returns the number of `renamed_files`                                                                                                                                          |
-|                            <a name="output_type_changed_files"></a>[type\_changed\_files](#output_type_changed_files)                            | string |                                                                                                                             Returns only files that have <br>their file type changed (T).                                                                                                                               |
-|                   <a name="output_type_changed_files_count"></a>[type\_changed\_files\_count](#output_type_changed_files_count)                   | string |                                                                                                                                       Returns the number of `type_changed_files`                                                                                                                                        |
-|                                   <a name="output_unknown_files"></a>[unknown\_files](#output_unknown_files)                                    | string |                                                                                                                                      Returns only files that are <br>Unknown (X).                                                                                                                                       |
-|                          <a name="output_unknown_files_count"></a>[unknown\_files\_count](#output_unknown_files_count)                           | string |                                                                                                                                          Returns the number of `unknown_files`                                                                                                                                          |
-|                                  <a name="output_unmerged_files"></a>[unmerged\_files](#output_unmerged_files)                                  | string |                                                                                                                                     Returns only files that are <br>Unmerged (U).                                                                                                                                       |
-|                         <a name="output_unmerged_files_count"></a>[unmerged\_files\_count](#output_unmerged_files_count)                         | string |                                                                                                                                         Returns the number of `unmerged_files`                                                                                                                                          |
+<!-- AUTO-DOC-OUTPUT:END -->
 
 ## Versioning 🏷️
 
@@ -720,7 +701,30 @@ The format of the version string is as follows:
 ...
     - name: Get changed files
       id: changed-files
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
+...
+```
+
+</details>
+
+<details>
+<summary>Get all changed files without escaping unsafe filename characters</summary>
+
+```yaml
+...
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v41
+      with:
+        safe_output: false # set to false because we are using an environment variable to store the output and avoid command injection.
+
+    - name: List all added files
+      env:
+        ADDED_FILES: ${{ steps.changed-files.outputs.added_files }}
+      run: |
+        for file in "$ADDED_FILES"; do
+          echo "$file was added"
+        done
 ...
 ```
 
@@ -733,7 +737,7 @@ The format of the version string is as follows:
 ...
     - name: Get all changed files and use a comma separator in the output
       id: changed-files
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         separator: ","
 ...
@@ -750,11 +754,13 @@ See [inputs](#inputs) for more information.
 ...
     - name: Get changed files
       id: changed-files
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
 
     - name: List all added files
+      env:
+        ADDED_FILES: ${{ steps.changed-files.outputs.added_files }}
       run: |
-        for file in ${{ steps.changed-files.outputs.added_files }}; do
+        for file in "$ADDED_FILES"; do
           echo "$file was added"
         done
 ...
@@ -771,7 +777,7 @@ See [outputs](#outputs) for a list of all available outputs.
 ...
     - name: Get changed files
       id: changed-files
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
 
     - name: Run a step if my-file.txt was modified
       if: contains(steps.changed-files.outputs.modified_files, 'my-file.txt')
@@ -792,7 +798,7 @@ See [outputs](#outputs) for a list of all available outputs.
 
    - name: Get changed files and write the outputs to a Txt file
      id: changed-files-write-output-files-txt
-     uses: ./
+     uses: tj-actions/changed-files@v41
      with:
        write_output_files: true
 
@@ -811,7 +817,7 @@ See [outputs](#outputs) for a list of all available outputs.
 ...
    - name: Get changed files and write the outputs to a JSON file
      id: changed-files-write-output-files-json
-     uses: ./
+     uses: tj-actions/changed-files@v41
      with:
        json: true
        write_output_files: true
@@ -831,7 +837,7 @@ See [outputs](#outputs) for a list of all available outputs.
 ...
     - name: Get changed files
       id: changed-files
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         files: |
           my-file.txt
@@ -854,7 +860,7 @@ See [inputs](#inputs) for more information.
 ...
     - name: Get changed files
       id: changed-files-specific
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         files: |
           my-file.txt
@@ -876,15 +882,19 @@ See [inputs](#inputs) for more information.
 
     - name: Run step if any of the listed files above is deleted
       if: steps.changed-files-specific.outputs.any_deleted == 'true'
+      env:
+        DELETED_FILES: ${{ steps.changed-files-specific.outputs.deleted_files }}
       run: |
-        for file in ${{ steps.changed-files-specific.outputs.deleted_files }}; do
+        for file in "$DELETED_FILES"; do
           echo "$file was deleted"
         done
 
     - name: Run step if all listed files above have been deleted
       if: steps.changed-files-specific.outputs.only_deleted == 'true'
+      env:
+        DELETED_FILES: ${{ steps.changed-files-specific.outputs.deleted_files }}
       run: |
-        for file in ${{ steps.changed-files-specific.outputs.deleted_files }}; do
+        for file in "$DELETED_FILES"; do
           echo "$file was deleted"
         done
 ...
@@ -901,7 +911,7 @@ See [outputs](#outputs) for a list of all available outputs.
 ...
     - name: Get changed files using a source file or list of file(s) to populate to files input.
       id: changed-files-specific-source-file
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         files_from_source_file: test/changed-files-list.txt
 ...
@@ -918,7 +928,7 @@ See [inputs](#inputs) for more information.
 ...
     - name: Get changed files using a source file or list of file(s) to populate to files input and optionally specify more files.
       id: changed-files-specific-source-file-and-specify-files
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         files_from_source_file: |
           test/changed-files-list.txt
@@ -939,7 +949,7 @@ See [inputs](#inputs) for more information.
 ...
     - name: Get changed files using a different SHA
       id: changed-files
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         sha: ${{ github.event.pull_request.head.sha }}
 ...
@@ -956,7 +966,7 @@ See [inputs](#inputs) for more information.
 ...
     - name: Get changed files using a different base SHA
       id: changed-files
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         base_sha: ${{ github.event.pull_request.base.sha }}
 ...
@@ -988,20 +998,22 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v41
 
       - name: Get changed files in the .github folder
         id: changed-files-specific
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v41
         with:
           base_sha: ${{ steps.get-base-sha.outputs.base_sha }}
           files: .github/**
 
       - name: Run step if any file(s) in the .github folder change
         if: steps.changed-files-specific.outputs.any_changed == 'true'
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files-specific.outputs.all_changed_files }}
         run: |
           echo "One or more files in the .github folder has changed."
-          echo "List all the files that have changed: ${{ steps.changed-files-specific.outputs.all_changed_files }}"
+          echo "List all the files that have changed: $ALL_CHANGED_FILES"
 ...
 ```
 
@@ -1022,13 +1034,16 @@ See [inputs](#inputs) for more information.
 
     - name: Run changed-files with defaults in dir1
       id: changed-files-for-dir1
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         path: dir1
 
     - name: List all added files in dir1
+      env:
+        ADDED_FILES: |-
+          ${{ steps.changed-files-for-dir1.outputs.added_files }}
       run: |
-        for file in ${{ steps.changed-files-for-dir1.outputs.added_files }}; do
+        for file in "$ADDED_FILES"; do
           echo "$file was added"
         done
 ...
@@ -1045,13 +1060,13 @@ See [inputs](#inputs) for more information.
 ...
     - name: Run changed-files with quotepath disabled
       id: changed-files-quotepath
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         quotepath: "false"
 
     - name: Run changed-files with quotepath disabled for a specified list of file(s)
       id: changed-files-quotepath-specific
-      uses: ./
+      uses: tj-actions/changed-files@v41
       with:
         files: test/test-è.txt
         quotepath: "false"
@@ -1084,7 +1099,7 @@ See [inputs](#inputs) for more information.
 
       - name: Run changed-files with the commit of the last successful test workflow run
         id: changed-files-base-sha-push
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v41
         with:
           base_sha: ${{ steps.last_successful_commit_push.outputs.base }}
 ...
@@ -1111,7 +1126,7 @@ See [inputs](#inputs) for more information.
 
       - name: Run changed-files with the commit of the last successful test workflow run on the main branch
         id: changed-files-base-sha-pull-request
-        uses: tj-actions/changed-files@v40
+        uses: tj-actions/changed-files@v41
         with:
           base_sha: ${{ steps.last_successful_commit_pull_request.outputs.base }}
 ...
@@ -1137,7 +1152,7 @@ See [inputs](#inputs) for more information.
 ...
     - name: Run changed-files with dir_names
       id: changed-files-dir-names
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         dir_names: "true"
 ...
@@ -1154,7 +1169,7 @@ See [inputs](#inputs) for more information.
 ...
     - name: Run changed-files with JSON output
       id: changed-files-json
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         json: "true"
 ...
@@ -1171,13 +1186,13 @@ See [inputs](#inputs) for more information.
 ...
     - name: Get changed-files since 2022-08-19
       id: changed-files-since
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         since: "2022-08-19"
 
     - name: Get changed-files until 2022-08-20
       id: changed-files-until
-      uses: tj-actions/changed-files@v40
+      uses: tj-actions/changed-files@v41
       with:
         until: "2022-08-20"
 ...
@@ -1303,6 +1318,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/cfernhout"><img src="https://avatars.githubusercontent.com/u/22294606?v=4?s=100" width="100px;" alt="Chiel Fernhout"/><br /><sub><b>Chiel Fernhout</b></sub></a><br /><a href="https://github.com/tj-actions/changed-files/commits?author=cfernhout" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/albertoperdomo2"><img src="https://avatars.githubusercontent.com/u/62241095?v=4?s=100" width="100px;" alt="Alberto Perdomo"/><br /><sub><b>Alberto Perdomo</b></sub></a><br /><a href="https://github.com/tj-actions/changed-files/commits?author=albertoperdomo2" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://arthurvolant.com"><img src="https://avatars.githubusercontent.com/u/37664438?v=4?s=100" width="100px;" alt="Arthur"/><br /><sub><b>Arthur</b></sub></a><br /><a href="https://github.com/tj-actions/changed-files/issues?q=author%3AV0lantis" title="Bug reports">🐛</a> <a href="https://github.com/tj-actions/changed-files/commits?author=V0lantis" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/rodrigorfk"><img src="https://avatars.githubusercontent.com/u/1995033?v=4?s=100" width="100px;" alt="Rodrigo Fior Kuntzer"/><br /><sub><b>Rodrigo Fior Kuntzer</b></sub></a><br /><a href="https://github.com/tj-actions/changed-files/commits?author=rodrigorfk" title="Code">💻</a> <a href="https://github.com/tj-actions/changed-files/commits?author=rodrigorfk" title="Tests">⚠️</a> <a href="https://github.com/tj-actions/changed-files/issues?q=author%3Arodrigorfk" title="Bug reports">🐛</a></td>
     </tr>
   </tbody>
 </table>

@@ -454,7 +454,8 @@ const setOutputsAndGetModifiedAndChangedFilesStatus = ({ allDiffFiles, allFilter
         writeOutputFiles: inputs.writeOutputFiles,
         outputDir: inputs.outputDir,
         json: inputs.json,
-        shouldEscape: inputs.escapeJson
+        shouldEscape: inputs.escapeJson,
+        safeOutput: inputs.safeOutput
     });
     yield (0, utils_1.setOutput)({
         key: (0, utils_1.getOutputKey)('added_files_count', outputPrefix),
@@ -474,7 +475,8 @@ const setOutputsAndGetModifiedAndChangedFilesStatus = ({ allDiffFiles, allFilter
         writeOutputFiles: inputs.writeOutputFiles,
         outputDir: inputs.outputDir,
         json: inputs.json,
-        shouldEscape: inputs.escapeJson
+        shouldEscape: inputs.escapeJson,
+        safeOutput: inputs.safeOutput
     });
     yield (0, utils_1.setOutput)({
         key: (0, utils_1.getOutputKey)('copied_files_count', outputPrefix),
@@ -494,7 +496,8 @@ const setOutputsAndGetModifiedAndChangedFilesStatus = ({ allDiffFiles, allFilter
         writeOutputFiles: inputs.writeOutputFiles,
         outputDir: inputs.outputDir,
         json: inputs.json,
-        shouldEscape: inputs.escapeJson
+        shouldEscape: inputs.escapeJson,
+        safeOutput: inputs.safeOutput
     });
     yield (0, utils_1.setOutput)({
         key: (0, utils_1.getOutputKey)('modified_files_count', outputPrefix),
@@ -514,7 +517,8 @@ const setOutputsAndGetModifiedAndChangedFilesStatus = ({ allDiffFiles, allFilter
         writeOutputFiles: inputs.writeOutputFiles,
         outputDir: inputs.outputDir,
         json: inputs.json,
-        shouldEscape: inputs.escapeJson
+        shouldEscape: inputs.escapeJson,
+        safeOutput: inputs.safeOutput
     });
     yield (0, utils_1.setOutput)({
         key: (0, utils_1.getOutputKey)('renamed_files_count', outputPrefix),
@@ -534,7 +538,8 @@ const setOutputsAndGetModifiedAndChangedFilesStatus = ({ allDiffFiles, allFilter
         writeOutputFiles: inputs.writeOutputFiles,
         outputDir: inputs.outputDir,
         json: inputs.json,
-        shouldEscape: inputs.escapeJson
+        shouldEscape: inputs.escapeJson,
+        safeOutput: inputs.safeOutput
     });
     yield (0, utils_1.setOutput)({
         key: (0, utils_1.getOutputKey)('type_changed_files_count', outputPrefix),
@@ -554,7 +559,8 @@ const setOutputsAndGetModifiedAndChangedFilesStatus = ({ allDiffFiles, allFilter
         writeOutputFiles: inputs.writeOutputFiles,
         outputDir: inputs.outputDir,
         json: inputs.json,
-        shouldEscape: inputs.escapeJson
+        shouldEscape: inputs.escapeJson,
+        safeOutput: inputs.safeOutput
     });
     yield (0, utils_1.setOutput)({
         key: (0, utils_1.getOutputKey)('unmerged_files_count', outputPrefix),
@@ -574,7 +580,8 @@ const setOutputsAndGetModifiedAndChangedFilesStatus = ({ allDiffFiles, allFilter
         writeOutputFiles: inputs.writeOutputFiles,
         outputDir: inputs.outputDir,
         json: inputs.json,
-        shouldEscape: inputs.escapeJson
+        shouldEscape: inputs.escapeJson,
+        safeOutput: inputs.safeOutput
     });
     yield (0, utils_1.setOutput)({
         key: (0, utils_1.getOutputKey)('unknown_files_count', outputPrefix),
@@ -593,7 +600,8 @@ const setOutputsAndGetModifiedAndChangedFilesStatus = ({ allDiffFiles, allFilter
         writeOutputFiles: inputs.writeOutputFiles,
         outputDir: inputs.outputDir,
         json: inputs.json,
-        shouldEscape: inputs.escapeJson
+        shouldEscape: inputs.escapeJson,
+        safeOutput: inputs.safeOutput
     });
     yield (0, utils_1.setOutput)({
         key: (0, utils_1.getOutputKey)('all_changed_and_modified_files_count', outputPrefix),
@@ -618,7 +626,8 @@ const setOutputsAndGetModifiedAndChangedFilesStatus = ({ allDiffFiles, allFilter
         writeOutputFiles: inputs.writeOutputFiles,
         outputDir: inputs.outputDir,
         json: inputs.json,
-        shouldEscape: inputs.escapeJson
+        shouldEscape: inputs.escapeJson,
+        safeOutput: inputs.safeOutput
     });
     yield (0, utils_1.setOutput)({
         key: (0, utils_1.getOutputKey)('all_changed_files_count', outputPrefix),
@@ -687,7 +696,8 @@ const setOutputsAndGetModifiedAndChangedFilesStatus = ({ allDiffFiles, allFilter
         writeOutputFiles: inputs.writeOutputFiles,
         outputDir: inputs.outputDir,
         json: inputs.json,
-        shouldEscape: inputs.escapeJson
+        shouldEscape: inputs.escapeJson,
+        safeOutput: inputs.safeOutput
     });
     yield (0, utils_1.setOutput)({
         key: (0, utils_1.getOutputKey)('all_modified_files_count', outputPrefix),
@@ -768,7 +778,8 @@ const setOutputsAndGetModifiedAndChangedFilesStatus = ({ allDiffFiles, allFilter
         writeOutputFiles: inputs.writeOutputFiles,
         outputDir: inputs.outputDir,
         json: inputs.json,
-        shouldEscape: inputs.escapeJson
+        shouldEscape: inputs.escapeJson,
+        safeOutput: inputs.safeOutput
     });
     yield (0, utils_1.setOutput)({
         key: (0, utils_1.getOutputKey)('deleted_files_count', outputPrefix),
@@ -1498,6 +1509,7 @@ const getInputs = () => {
     });
     const json = core.getBooleanInput('json', { required: false });
     const escapeJson = core.getBooleanInput('escape_json', { required: false });
+    const safeOutput = core.getBooleanInput('safe_output', { required: false });
     const fetchDepth = core.getInput('fetch_depth', { required: false });
     const sinceLastRemoteCommit = core.getBooleanInput('since_last_remote_commit', { required: false });
     const writeOutputFiles = core.getBooleanInput('write_output_files', {
@@ -1587,6 +1599,7 @@ const getInputs = () => {
         dirNamesIncludeFilesSeparator,
         json,
         escapeJson,
+        safeOutput,
         writeOutputFiles,
         outputDir,
         outputRenamedFilesAsDeletedAndAdded,
@@ -1725,7 +1738,9 @@ const getChangedFilesFromLocalGitHistory = ({ inputs, env, workingDirectory, fil
             workingDirectory,
             deletedFiles: allDiffFiles[changedFiles_1.ChangeTypeEnum.Deleted],
             recoverPatterns,
-            sha: diffResult.previousSha
+            diffResult,
+            hasSubmodule,
+            submodulePaths
         });
     }
     yield (0, changedFiles_1.processChangedFiles)({
@@ -1750,7 +1765,8 @@ const getChangedFilesFromLocalGitHistory = ({ inputs, env, workingDirectory, fil
             value: allOldNewRenamedFiles.paths,
             writeOutputFiles: inputs.writeOutputFiles,
             outputDir: inputs.outputDir,
-            json: inputs.json
+            json: inputs.json,
+            safeOutput: inputs.safeOutput
         });
         yield (0, utils_1.setOutput)({
             key: 'all_old_new_renamed_files_count',
@@ -2798,17 +2814,22 @@ const setArrayOutput = ({ key, inputs, value, outputPrefix }) => __awaiter(void 
         writeOutputFiles: inputs.writeOutputFiles,
         outputDir: inputs.outputDir,
         json: inputs.json,
-        shouldEscape: inputs.escapeJson
+        shouldEscape: inputs.escapeJson,
+        safeOutput: inputs.safeOutput
     });
 });
 exports.setArrayOutput = setArrayOutput;
-const setOutput = ({ key, value, writeOutputFiles, outputDir, json = false, shouldEscape = false }) => __awaiter(void 0, void 0, void 0, function* () {
+const setOutput = ({ key, value, writeOutputFiles, outputDir, json = false, shouldEscape = false, safeOutput = false }) => __awaiter(void 0, void 0, void 0, function* () {
     let cleanedValue;
     if (json) {
         cleanedValue = (0, exports.jsonOutput)({ value, shouldEscape });
     }
     else {
         cleanedValue = value.toString().trim();
+    }
+    // if safeOutput is true, escape special characters for bash shell
+    if (safeOutput) {
+        cleanedValue = cleanedValue.replace(/[^\x20-\x7E]|[:*?<>|;`$()&!]/g, '\\$&');
     }
     core.setOutput(key, cleanedValue);
     if (writeOutputFiles) {
@@ -2832,7 +2853,7 @@ const getDeletedFileContents = ({ cwd, filePath, sha }) => __awaiter(void 0, voi
     }
     return stdout;
 });
-const recoverDeletedFiles = ({ inputs, workingDirectory, deletedFiles, recoverPatterns, sha }) => __awaiter(void 0, void 0, void 0, function* () {
+const recoverDeletedFiles = ({ inputs, workingDirectory, deletedFiles, recoverPatterns, diffResult, hasSubmodule, submodulePaths }) => __awaiter(void 0, void 0, void 0, function* () {
     let recoverableDeletedFiles = deletedFiles;
     core.debug(`recoverable deleted files: ${recoverableDeletedFiles}`);
     if (recoverPatterns.length > 0) {
@@ -2848,15 +2869,46 @@ const recoverDeletedFiles = ({ inputs, workingDirectory, deletedFiles, recoverPa
         if (inputs.recoverDeletedFilesToDestination) {
             target = path.join(workingDirectory, inputs.recoverDeletedFilesToDestination, deletedFile);
         }
-        const deletedFileContents = yield getDeletedFileContents({
-            cwd: workingDirectory,
-            filePath: deletedFile,
-            sha
-        });
+        let deletedFileContents;
+        const submodulePath = submodulePaths.find(p => deletedFile.startsWith(p));
+        if (hasSubmodule && submodulePath) {
+            const submoduleShaResult = yield (0, exports.gitSubmoduleDiffSHA)({
+                cwd: workingDirectory,
+                parentSha1: diffResult.previousSha,
+                parentSha2: diffResult.currentSha,
+                submodulePath,
+                diff: diffResult.diff
+            });
+            if (submoduleShaResult.previousSha) {
+                core.debug(`recovering deleted file "${deletedFile}" from submodule ${submodulePath} from ${submoduleShaResult.previousSha}`);
+                deletedFileContents = yield getDeletedFileContents({
+                    cwd: path.join(workingDirectory, submodulePath),
+                    // E.g. submodulePath = test/demo and deletedFile = test/demo/.github/README.md => filePath => .github/README.md
+                    filePath: deletedFile.replace(submodulePath, '').substring(1),
+                    sha: submoduleShaResult.previousSha
+                });
+            }
+            else {
+                core.warning(`Unable to recover deleted file "${deletedFile}" from submodule ${submodulePath} from ${submoduleShaResult.previousSha}`);
+                continue;
+            }
+        }
+        else {
+            core.debug(`recovering deleted file "${deletedFile}" from ${diffResult.previousSha}`);
+            deletedFileContents = yield getDeletedFileContents({
+                cwd: workingDirectory,
+                filePath: deletedFile,
+                sha: diffResult.previousSha
+            });
+        }
+        core.debug(`recovered deleted file "${deletedFile}"`);
         if (!(yield (0, exports.exists)(path.dirname(target)))) {
+            core.debug(`creating directory "${path.dirname(target)}"`);
             yield fs_1.promises.mkdir(path.dirname(target), { recursive: true });
         }
+        core.debug(`writing file "${target}"`);
         yield fs_1.promises.writeFile(target, deletedFileContents);
+        core.debug(`wrote file "${target}"`);
     }
 });
 exports.recoverDeletedFiles = recoverDeletedFiles;
@@ -7017,7 +7069,7 @@ __export(dist_src_exports, {
 module.exports = __toCommonJS(dist_src_exports);
 
 // pkg/dist-src/version.js
-var VERSION = "9.1.4";
+var VERSION = "9.1.5";
 
 // pkg/dist-src/normalize-paginated-list-response.js
 function normalizePaginatedListResponse(response) {
@@ -33037,6 +33089,7 @@ function request (opts, callback) {
 }
 
 module.exports = request
+module.exports.RequestHandler = RequestHandler
 
 
 /***/ }),
@@ -33583,7 +33636,7 @@ module.exports = class BodyReadable extends Readable {
       this
         .on('close', function () {
           signalListenerCleanup()
-          if (signal?.aborted) {
+          if (signal && signal.aborted) {
             reject(signal.reason || Object.assign(new Error('The operation was aborted'), { name: 'AbortError' }))
           } else {
             resolve(null)
@@ -34977,13 +35030,13 @@ module.exports = {
 /***/ }),
 
 /***/ 9174:
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
 
 module.exports = {
-  kConstruct: Symbol('constructable')
+  kConstruct: (__nccwpck_require__(2785).kConstruct)
 }
 
 
@@ -39234,7 +39287,8 @@ module.exports = {
   kHTTP1BuildRequest: Symbol('http1 build request'),
   kHTTP2CopyHeaders: Symbol('http2 copy headers'),
   kHTTPConnVersion: Symbol('http connection version'),
-  kRetryHandlerDefaultRetry: Symbol('retry agent default retry')
+  kRetryHandlerDefaultRetry: Symbol('retry agent default retry'),
+  kConstruct: Symbol('constructable')
 }
 
 
@@ -40882,17 +40936,14 @@ function dataURLProcessor (dataURL) {
  * @param {boolean} excludeFragment
  */
 function URLSerializer (url, excludeFragment = false) {
-  const href = url.href
-
   if (!excludeFragment) {
-    return href
+    return url.href
   }
 
-  const hash = href.lastIndexOf('#')
-  if (hash === -1) {
-    return href
-  }
-  return href.slice(0, hash)
+  const href = url.href
+  const hashLength = url.hash.length
+
+  return hashLength === 0 ? href : href.substring(0, href.length - hashLength)
 }
 
 // https://infra.spec.whatwg.org/#collect-a-sequence-of-code-points
@@ -42076,7 +42127,7 @@ module.exports = {
 
 
 
-const { kHeadersList } = __nccwpck_require__(2785)
+const { kHeadersList, kConstruct } = __nccwpck_require__(2785)
 const { kGuard } = __nccwpck_require__(5861)
 const { kEnumerableProperty } = __nccwpck_require__(3983)
 const {
@@ -42314,6 +42365,9 @@ class HeadersList {
 // https://fetch.spec.whatwg.org/#headers-class
 class Headers {
   constructor (init = undefined) {
+    if (init === kConstruct) {
+      return
+    }
     this[kHeadersList] = new HeadersList()
 
     // The new Headers(init) constructor steps are:
@@ -42954,7 +43008,7 @@ function finalizeAndReportTiming (response, initiatorType = 'other') {
   }
 
   // 8. If response’s timing allow passed flag is not set, then:
-  if (!timingInfo.timingAllowPassed) {
+  if (!response.timingAllowPassed) {
     //  1. Set timingInfo to a the result of creating an opaque timing info for timingInfo.
     timingInfo = createOpaqueTimingInfo({
       startTime: timingInfo.startTime
@@ -44849,13 +44903,12 @@ const { kHeaders, kSignal, kState, kGuard, kRealm } = __nccwpck_require__(5861)
 const { webidl } = __nccwpck_require__(1744)
 const { getGlobalOrigin } = __nccwpck_require__(1246)
 const { URLSerializer } = __nccwpck_require__(685)
-const { kHeadersList } = __nccwpck_require__(2785)
+const { kHeadersList, kConstruct } = __nccwpck_require__(2785)
 const assert = __nccwpck_require__(9491)
 const { getMaxListeners, setMaxListeners, getEventListeners, defaultMaxListeners } = __nccwpck_require__(2361)
 
 let TransformStream = globalThis.TransformStream
 
-const kInit = Symbol('init')
 const kAbortController = Symbol('abortController')
 
 const requestFinalizer = new FinalizationRegistry(({ signal, abort }) => {
@@ -44866,7 +44919,7 @@ const requestFinalizer = new FinalizationRegistry(({ signal, abort }) => {
 class Request {
   // https://fetch.spec.whatwg.org/#dom-request
   constructor (input, init = {}) {
-    if (input === kInit) {
+    if (input === kConstruct) {
       return
     }
 
@@ -45123,7 +45176,7 @@ class Request {
     }
 
     // 23. If init["integrity"] exists, then set request’s integrity metadata to it.
-    if (init.integrity !== undefined && init.integrity != null) {
+    if (init.integrity != null) {
       request.integrity = String(init.integrity)
     }
 
@@ -45219,7 +45272,7 @@ class Request {
     // 30. Set this’s headers to a new Headers object with this’s relevant
     // Realm, whose header list is request’s header list and guard is
     // "request".
-    this[kHeaders] = new Headers()
+    this[kHeaders] = new Headers(kConstruct)
     this[kHeaders][kHeadersList] = request.headersList
     this[kHeaders][kGuard] = 'request'
     this[kHeaders][kRealm] = this[kRealm]
@@ -45546,10 +45599,10 @@ class Request {
 
     // 3. Let clonedRequestObject be the result of creating a Request object,
     // given clonedRequest, this’s headers’s guard, and this’s relevant Realm.
-    const clonedRequestObject = new Request(kInit)
+    const clonedRequestObject = new Request(kConstruct)
     clonedRequestObject[kState] = clonedRequest
     clonedRequestObject[kRealm] = this[kRealm]
-    clonedRequestObject[kHeaders] = new Headers()
+    clonedRequestObject[kHeaders] = new Headers(kConstruct)
     clonedRequestObject[kHeaders][kHeadersList] = clonedRequest.headersList
     clonedRequestObject[kHeaders][kGuard] = this[kHeaders][kGuard]
     clonedRequestObject[kHeaders][kRealm] = this[kHeaders][kRealm]
@@ -45799,7 +45852,7 @@ const { webidl } = __nccwpck_require__(1744)
 const { FormData } = __nccwpck_require__(2015)
 const { getGlobalOrigin } = __nccwpck_require__(1246)
 const { URLSerializer } = __nccwpck_require__(685)
-const { kHeadersList } = __nccwpck_require__(2785)
+const { kHeadersList, kConstruct } = __nccwpck_require__(2785)
 const assert = __nccwpck_require__(9491)
 const { types } = __nccwpck_require__(3837)
 
@@ -45920,7 +45973,7 @@ class Response {
     // 2. Set this’s headers to a new Headers object with this’s relevant
     // Realm, whose header list is this’s response’s header list and guard
     // is "response".
-    this[kHeaders] = new Headers()
+    this[kHeaders] = new Headers(kConstruct)
     this[kHeaders][kGuard] = 'response'
     this[kHeaders][kHeadersList] = this[kState].headersList
     this[kHeaders][kRealm] = this[kRealm]
@@ -46290,11 +46343,7 @@ webidl.converters.XMLHttpRequestBodyInit = function (V) {
     return webidl.converters.Blob(V, { strict: false })
   }
 
-  if (
-    types.isAnyArrayBuffer(V) ||
-    types.isTypedArray(V) ||
-    types.isDataView(V)
-  ) {
+  if (types.isArrayBuffer(V) || types.isTypedArray(V) || types.isDataView(V)) {
     return webidl.converters.BufferSource(V)
   }
 
@@ -49568,7 +49617,7 @@ module.exports = RedirectHandler
 /***/ 2286:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const assert = __nccwpck_require__(8061)
+const assert = __nccwpck_require__(9491)
 
 const { kRetryHandlerDefaultRetry } = __nccwpck_require__(2785)
 const { RequestRetryError } = __nccwpck_require__(8045)
@@ -49665,7 +49714,7 @@ class RetryHandler {
   }
 
   onBodySent (chunk) {
-    return this.handler.onBodySent(chunk)
+    if (this.handler.onBodySent) return this.handler.onBodySent(chunk)
   }
 
   static [kRetryHandlerDefaultRetry] (err, { state, opts }, cb) {
@@ -51828,6 +51877,9 @@ class ProxyAgent extends DispatcherBase {
     this[kProxyTls] = opts.proxyTls
     this[kProxyHeaders] = opts.headers || {}
 
+    const resolvedUrl = new URL(opts.uri)
+    const { origin, port, host, username, password } = resolvedUrl
+
     if (opts.auth && opts.token) {
       throw new InvalidArgumentError('opts.auth cannot be used in combination with opts.token')
     } else if (opts.auth) {
@@ -51835,10 +51887,9 @@ class ProxyAgent extends DispatcherBase {
       this[kProxyHeaders]['proxy-authorization'] = `Basic ${opts.auth}`
     } else if (opts.token) {
       this[kProxyHeaders]['proxy-authorization'] = opts.token
+    } else if (username && password) {
+      this[kProxyHeaders]['proxy-authorization'] = `Basic ${Buffer.from(`${decodeURIComponent(username)}:${decodeURIComponent(password)}`).toString('base64')}`
     }
-
-    const resolvedUrl = new URL(opts.uri)
-    const { origin, port, host } = resolvedUrl
 
     const connect = buildConnector({ ...opts.proxyTls })
     this[kConnectEndpoint] = buildConnector({ ...opts.requestTls })
@@ -51863,7 +51914,7 @@ class ProxyAgent extends DispatcherBase {
           })
           if (statusCode !== 200) {
             socket.on('error', () => {}).destroy()
-            callback(new RequestAbortedError('Proxy response !== 200 when HTTP Tunneling'))
+            callback(new RequestAbortedError(`Proxy response (${statusCode}) !== 200 when HTTP Tunneling`))
           }
           if (opts.protocol !== 'https:') {
             callback(null, socket)
@@ -54857,14 +54908,6 @@ module.exports = require("https");
 
 "use strict";
 module.exports = require("net");
-
-/***/ }),
-
-/***/ 8061:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("node:assert");
 
 /***/ }),
 
